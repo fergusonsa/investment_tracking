@@ -60,5 +60,6 @@ https://requests.readthedocs.io/en/master/
 https://github.com/ianlini/flatten-dict
 
 https://github.com/fergusonsa/python_miscelaneous
-`
+
+
 NOTE that the ezods module cannot recalculate formulas, so after opening the spreadsheet, you must select the sheet and press F9 to recalculate any formulas.
