@@ -22,17 +22,20 @@ def fetch_investment_update(config):
     # Using example https://linuxhint.com/logging_into_websites_python/
     with requests.Session() as session:
         # Get the login page
-
-        res = session.get(login_url, verify=False)
+        login_page_res = session.get(login_url, verify=False)
         # Get the _RequestVerificationToken hidden field value
-        bs_content = bs(res.content, "html.parser")
-        token = bs_content.find("input", {"name": "_RequestVerificationToken"})
+        login_page_content = bs(login_page_res.content, "html.parser")
+        token = login_page_content.find("input", {"name": "_RequestVerificationToken"})
 
         login_data = {'Login': username,
-                'Password': password,
-                'RememberLogin': False,
-                '_RequestVerificationToken': token}
-        res = session.post(login_post_url, login_data)
+                      'Password': password,
+                      'RememberLogin': False,
+                      '_RequestVerificationToken': token}
+        res = session.post(login_post_url, data=login_data, headers=dict(referer=login_url))
+        if res.status_code != 200:
+            logger.warning('Cannot login to the website {}. Getting status code {} with reason {}'.format(
+                login_post_url, res.status_code, res.reason))
+            return
         home_page = bs(res.content, "html.parser")
         # Get the summary page
         portfolio_url = config["investment_website"]["portfolio_url"]
@@ -48,8 +51,6 @@ def fetch_investment_update(config):
                 # Get the value from the portfolio summary page
                 # Find the row with the account in the first column
                 row = account_anchor.findParent('tr')
-
-
 
                 value = 10000.00
             else:
