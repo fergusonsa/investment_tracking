@@ -23,9 +23,7 @@ def save_investment_update(config, current_values):
     # find the first row in the range that has no date in the first cell
     while sheet[f'{date_column_index}{row_index}'].value_type == 'date' and row_index < 366:
         row_index += 1
-    # logger.debug('found empty row or last row at row index: {}'.format(row_index))
     accounts_config = config.get('accounts')
-    total_value = 0.0
     for column in current_values.keys():
         if column == 'date':
             cell_index = f'{date_column_index}{row_index}'
@@ -36,11 +34,6 @@ def save_investment_update(config, current_values):
 
             cell = sheet[f'{column_index}{row_index}']
             cell.set_value(current_values[column], currency='CAD')
-            total_value = total_value + current_values[column]
-
-    cell = sheet[f'{total_column_index}{row_index}']
-    cell.set_value(total_value, currency='CAD')
-    # pprint.pprint(spreadsheet)
 
     # After row data has been added, save the data
     spreadsheet.save()

@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 def fetch_investment_update(config):
     current_values = {"date": datetime.date.today()}
     login_url = config.get("investment_website").get("login_page_url")
-    login_post_url = config.get("investment_website").get("login_url")
 
     browser = mechanize.Browser()
     browser.set_handle_refresh(True)
@@ -29,7 +28,6 @@ def fetch_investment_update(config):
         logger.warning('Cannot login to the website {}. Getting status code {} with reason {}'.format(
             login_url, resp.status_code, resp.reason))
         return
-    # home_page = browser.get_current_page()
 
     # Get the summary page
     portfolio_link = browser.find_link(text="My Portfolio")
@@ -37,10 +35,7 @@ def fetch_investment_update(config):
         logger.warning('Cannot find "My Portfolio" link!')
         return
     browser.follow_link(portfolio_link)
-    # portfolio_page = browser.get_current_page()
     portfolio_url = browser.geturl()
-    # meta = portfolio_page.find('meta', content=True)
-    # browser.get(meta)
     portfolio_soup = BeautifulSoup(browser.response().read(), features="lxml")
     accounts_config = config.get('accounts')
     for account_name in accounts_config.keys():
