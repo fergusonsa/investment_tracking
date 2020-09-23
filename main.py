@@ -2,9 +2,7 @@ import datetime
 import pathlib
 import logging
 
-import requests
-from bs4 import BeautifulSoup as bs
-import mechanicalsoup
+from bs4 import BeautifulSoup
 import mechanize
 
 
@@ -18,56 +16,59 @@ def fetch_investment_update(config):
     current_values = {"date": datetime.date.today()}
     login_url = config.get("investment_website").get("login_page_url")
     login_post_url = config.get("investment_website").get("login_url")
-    username = config.get("investment_website").get("username")
-    password = config.get("investment_website").get("password")
 
-    browser = mechanicalsoup.StatefulBrowser(
-        soup_config={'features': 'lxml'},
-        raise_on_404=True,
-        user_agent='MyBot/0.1: mysite.example.com/bot_info',
-    )
+    browser = mechanize.Browser()
+    browser.set_handle_refresh(True)
     # Log into the website
     browser.open(login_url)
-    browser.select_form('#login-form')
-    browser["Login"] = username
-    browser["Password"] = password
-    resp = browser.submit_selected()
-    if resp.status_code != 200:
+    browser.select_form(action="/en-CA/Users/Login")
+    browser["Login"] = config.get("investment_website").get("username")
+    browser["Password"] = config.get("investment_website").get("password")
+    resp = browser.submit()
+    if resp.code != 200:
         logger.warning('Cannot login to the website {}. Getting status code {} with reason {}'.format(
             login_url, resp.status_code, resp.reason))
         return
-    home_page = browser.get_current_page()
+    # home_page = browser.get_current_page()
 
     # Get the summary page
-    portfolio_links = browser.links(link_text="My Portfolio")
-    if not portfolio_links:
+    portfolio_link = browser.find_link(text="My Portfolio")
+    if not portfolio_link:
         logger.warning('Cannot find "My Portfolio" link!')
         return
-    browser.follow_link(portfolio_links[0])
-    portfolio_page = browser.get_current_page()
-    portfolio_url = browser.get_url()
-    meta = portfolio_page.find('meta', content=True)
-    browser.get(meta)
+    browser.follow_link(portfolio_link)
+    # portfolio_page = browser.get_current_page()
+    portfolio_url = browser.geturl()
+    # meta = portfolio_page.find('meta', content=True)
+    # browser.get(meta)
+    portfolio_soup = BeautifulSoup(browser.response().read(), features="lxml")
     accounts_config = config.get('accounts')
     for account_name in accounts_config.keys():
-        if browser.get_url() != portfolio_url:
-            portfolio_link = browser.find_link('a', string="MY PORTFOLIO")
+        if browser.geturl() != portfolio_url:
+            portfolio_link = browser.find_link(text="My Portfolio")
             browser.follow_link(portfolio_link)
 
         value_location = accounts_config[account_name]['website_location']
         account_id = accounts_config[account_name]['account']
-        account_anchor = browser.find('a', string=account_id)
         if value_location == 'portfolio_url':
             # Get the value from the portfolio summary page
+            account_link = portfolio_soup.find('a', text=account_id)
             # Find the row with the account in the first column
-            row = account_anchor.findParent('tr')
-
-            value = 10000.00
+            account_row = account_link.findParent('tr')
+            value_contents = account_row.findAll('td')[6].contents[0]
+            value = float(value_contents.strip().replace(',',''))
         else:
             # Get the details page the account that contains the required value
-            # Find the row with the account in the first column
+            bond_name = accounts_config[account_name]['corporate_bond_name']
+            account_anchor = browser.find_link(text=account_id)
+            browser.follow_link(account_anchor)
+            account_soup = BeautifulSoup(browser.response().read(), features="lxml")
             # Get the value from the page
-            value = 1111.11
+            cell_element = account_soup.find('td', text=bond_name)
+            cell_row = cell_element.findParent('tr')
+            value_contents = cell_row.findAll('td')[8].contents[0]
+            value = float(value_contents.strip().replace(',',''))
+
         current_values[account_name] = value
 
     return current_values
@@ -78,7 +79,5 @@ if __name__ == '__main__':
                                              pathlib.Path('~/investment_tracking'),
                                              configuration.CONFIGURATION_TYPE_JSON)
     current_values = fetch_investment_update(config)
-    import pprint
-    pprint.pprint(current_values)
-    # if current_values:
-    #     ods_ezodf.save_investment_update(config, current_values)
+    if current_values:
+        ods_ezodf.save_investment_update(config, current_values)
