@@ -45,5 +45,14 @@ Website and account details are stored in a json file, ~/investment_tracking/inv
     }    
 }
 
+Dependencies
+
+https://github.com/python-mechanize/mechanize
+https://github.com/T0ha/ezodf
+https://lxml.de/
+https://www.crummy.com/software/BeautifulSoup/doc
+https://requests.readthedocs.io/en/master/
+https://github.com/ianlini/flatten-dict
+https://github.com/fergusonsa/python_miscelaneous
 
 NOTE that the ezods module cannot recalculate formulas, so after opening the spreadsheet, you must select the sheet and press F9 to recalculate any formulas.
