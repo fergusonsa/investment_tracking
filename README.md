@@ -4,6 +4,7 @@ A simple script to get investment values by webscraping from investment firm web
 
 Website and account details are stored in a json file, ~/investment_tracking/investment_tracking.json, that is not part of the repository and looks like this : 
 
+```
 {
     "investment_website": {
         "username": "my_username",
@@ -44,22 +45,17 @@ Website and account details are stored in a json file, ~/investment_tracking/inv
         "total_column": "H"
     }    
 }
+```
 
-Dependencies
+### Dependencies
 
-https://github.com/python-mechanize/mechanize
-
-https://github.com/T0ha/ezodf
-
-https://lxml.de/
-
-https://www.crummy.com/software/BeautifulSoup/doc
-
-https://requests.readthedocs.io/en/master/
-
-https://github.com/ianlini/flatten-dict
-
-https://github.com/fergusonsa/python_miscelaneous
+* https://github.com/python-mechanize/mechanize
+* https://github.com/T0ha/ezodf
+* https://lxml.de/
+* https://www.crummy.com/software/BeautifulSoup/doc
+* https://requests.readthedocs.io/en/master/
+* https://github.com/ianlini/flatten-dict
+* https://github.com/fergusonsa/python_miscelaneous
 
 
 NOTE that the ezods module cannot recalculate formulas, so after opening the spreadsheet, you must select the sheet and press F9 to recalculate any formulas.
