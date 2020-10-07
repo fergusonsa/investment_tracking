@@ -76,3 +76,7 @@ if __name__ == '__main__':
     current_values = fetch_investment_update(config)
     if current_values:
         ods_ezodf.save_investment_update(config, current_values)
+        print('Success')
+        print(current_values)
+    else:
+        print('Did not get current values. Failure')
